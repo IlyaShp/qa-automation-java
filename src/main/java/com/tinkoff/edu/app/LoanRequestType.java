@@ -1,5 +1,5 @@
 package com.tinkoff.edu.app;
 
-public enum LoanType {
+public enum LoanRequestType {
     PERSON, IP, OOO
 }

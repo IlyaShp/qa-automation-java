@@ -4,11 +4,11 @@ package com.tinkoff.edu.app;
  * Class, Type -> objects, instances
  */
 public class LoanRequest {
-    private final LoanType type;
+    private final LoanRequestType type;
     private final int months; //stateful + immutable
     private final int amount;
 
-    public LoanRequest(LoanType type, int months, int amount){
+    public LoanRequest(LoanRequestType type, int months, int amount){
         this.type = type;
         this.months = months;
         this.amount = amount;
