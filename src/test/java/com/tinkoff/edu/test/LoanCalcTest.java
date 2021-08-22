@@ -8,7 +8,7 @@ import com.tinkoff.edu.app.*;
 
 public class LoanCalcTest{
     public static void main(String... args) {
-        LoanCalcController loanCalcController = new LoanCalcController();
+        LoanCalcController loanCalcController = new LoanCalcController(new OriginalLoanCalcService(new StaticVariableLoanCalcRepository()));
         LoanRequest request = new LoanRequest(LoanRequestType.IP, 10,1_000);
         LoanResponse response = new LoanResponse(LoanResponseType.APPROVED);
         int requestId = loanCalcController.createRequest(request);
