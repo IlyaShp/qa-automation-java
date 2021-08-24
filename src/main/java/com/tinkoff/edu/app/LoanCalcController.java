@@ -3,11 +3,16 @@ package com.tinkoff.edu.app;
 import static com.tinkoff.edu.app.LoanCalcLogger.log;
 
 public class LoanCalcController {
+    private LoanCalcService loanCalcService; //Creator
+
+    public LoanCalcController(LoanCalcService loanCalcService){
+        this.loanCalcService = loanCalcService;
+    }
+
     /**
      * Validates and logs request and response
      */
     public int createRequest(LoanRequest request) {
-        LoanCalcService loanCalcService = new LoanCalcService();
         // param validation
         // log request
         log(request);
@@ -15,7 +20,7 @@ public class LoanCalcController {
     }
 
     public int createResponse(LoanResponse response) {
-        LoanCalcService loanCalcService = new LoanCalcService();
+
         log(response);
         return loanCalcService.createResponse(response);
     }
