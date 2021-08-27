@@ -1,8 +1,12 @@
 com\tinkoff\edu\app\LoanCalcController.class
 com\tinkoff\edu\app\LoanRequestType.class
+com\tinkoff\edu\app\OriginalLoanCalcService.class
+com\tinkoff\edu\app\IpNotFriendlyService.class
 com\tinkoff\edu\app\LoanCalcRepository.class
 com\tinkoff\edu\app\LoanResponse.class
+com\tinkoff\edu\app\VariableLoanCalcRepository.class
 com\tinkoff\edu\app\LoanCalcLogger.class
 com\tinkoff\edu\app\LoanResponseType.class
+com\tinkoff\edu\app\ParamValidatingService.class
 com\tinkoff\edu\app\LoanCalcService.class
 com\tinkoff\edu\app\LoanRequest.class
