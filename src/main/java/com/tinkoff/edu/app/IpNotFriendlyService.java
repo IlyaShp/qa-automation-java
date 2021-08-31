@@ -1,5 +1,7 @@
 package com.tinkoff.edu.app;
 
+import com.tinkoff.edu.app.*;
+
 public class IpNotFriendlyService extends OriginalLoanCalcService {
     public IpNotFriendlyService(LoanCalcRepository loanCalcRepository) {
         super(loanCalcRepository);
