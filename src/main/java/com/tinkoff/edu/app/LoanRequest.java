@@ -1,7 +1,5 @@
 package com.tinkoff.edu.app;
 
-import org.apache.maven.surefire.shade.org.apache.commons.lang3.ObjectUtils;
-
 /**
  * Class, Type -> objects, instances
  */

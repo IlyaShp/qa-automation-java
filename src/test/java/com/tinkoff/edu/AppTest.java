@@ -12,33 +12,23 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 public class AppTest {
     private LoanRequest request;
     private LoanCalcController sut;
+    public LoanRequest LoanRequestTest(LoanRequestType type, int months, int amount) {
+        return new LoanRequest (type, months, amount);
+    }
 
     @BeforeEach
     public void init() {
-        //region Fixture / Arrange / Given
-        //endregion
     }
 
     @Test
     @DisplayName("Case_#000001")
     void shouldGet1WhenFirstRequest() {
-        //region Fixture / Arrange / Given
         VariableLoanCalcRepository repo = new VariableLoanCalcRepository();
         request = new LoanRequest(LoanRequestType.IP, 9, 1_000);
         sut = new LoanCalcController(new OriginalLoanCalcService(repo));
-        //endregion
         assumeTrue(repo.getRequestId() == 0);
-
-        //region Act / When
-        LoanResponse response = sut.createRequest(this.request);
-        //endregion
-
-        //region Assert / Then
-//        assertTrue(false);
-//        assertFalse(true);
+        LoanResponse response = sut.createRequest(request);
         assertEquals(1, response.getRequestId(), "error: requestId != 1");
-//        assertNull(1); assertNotNull(0);
-        //endregion
     }
 
     @Test
@@ -48,15 +38,7 @@ public class AppTest {
         final int NON_DEFAULT_ANY_ID = 2;
         sut = new LoanCalcController(new OriginalLoanCalcService(new VariableLoanCalcRepository(NON_DEFAULT_ANY_ID)));
         request = new LoanRequest(LoanRequestType.IP, 9, 1_000);
-        //endregion
-
-        //region Act / When
-
-        //endregion
-
-        //region Assert / Then
-        assertEquals(3, sut.createRequest(request).getRequestId());
-        //endregion
+        assertEquals(3, sut.createRequest(request).getRequestId(), "error: requestId != 3");
     }
 
     @Test
@@ -65,12 +47,9 @@ public class AppTest {
         sut = new LoanCalcController(new OriginalLoanCalcService(new VariableLoanCalcRepository(0)));
         int approvingMonths = 12;
         request = new LoanRequest(LoanRequestType.IP, approvingMonths, 1_000);
-
         LoanResponse loanResponse = sut.createRequest(this.request);
-
-        assertEquals(new LoanResponse(LoanResponseType.DENIED, 1), loanResponse);
+        assertEquals(new LoanResponse(LoanResponseType.DENIED, 1), loanResponse, "error: not DENIED");
     }
-
 
     @Test
     @DisplayName("Case_#000004")
@@ -80,7 +59,6 @@ public class AppTest {
         assertThrows(IllegalArgumentException.class, () -> {
             sut.createRequest(request);
         });
-
     }
 
     @Test
@@ -92,7 +70,6 @@ public class AppTest {
         assertThrows(IllegalArgumentException.class, () -> {
             sut.createRequest(request);
         });
-
     }
 
     @Test
@@ -104,7 +81,6 @@ public class AppTest {
         assertThrows(IllegalArgumentException.class, () -> {
             sut.createRequest(request);
         });
-
     }
 
     @Test
@@ -116,7 +92,6 @@ public class AppTest {
         assertThrows(IllegalArgumentException.class, () -> {
             sut.createRequest(request);
         });
-
     }
 
     @Test
@@ -246,5 +221,4 @@ public class AppTest {
         LoanResponse loanResponse = sut.createRequest(this.request);
         assertEquals(new LoanResponse(LoanResponseType.APPROVED, 1), loanResponse);
     }
-
 }

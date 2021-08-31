@@ -14,20 +14,22 @@ public class LoanCalcController {
      * Validates and logs request and response
      */
     public LoanResponse createRequest(LoanRequest request) {
+        boolean exceptionForRequest = request == null || request.getAmount() <= 0 || request.getMonths() <= 0;
+        boolean personAmountLessOneThousand = request.getType() == LoanRequestType.PERSON && request.getAmount() < 1_000;
+        boolean personLessTenLessTwelve = request.getType() == LoanRequestType.PERSON && request.getAmount() <= 10_000 && request.getMonths() <= 12;
+        boolean oooMoreTenLessTwelve = request.getType() == LoanRequestType.OOO && request.getAmount() > 10_000 && request.getMonths() < 12;
+        boolean personMoreTenMoreTwelve = request.getType() == LoanRequestType.PERSON && request.getAmount() > 10_000 && request.getMonths() > 12;
+        boolean oooLessTen = request.getType() == LoanRequestType.OOO && request.getAmount() <= 10_000;
+        boolean oooMoreTenMoreTwelve = request.getType() == LoanRequestType.OOO && request.getAmount() > 10_000 && request.getMonths() >= 12;
+        boolean ipType = request.getType() == LoanRequestType.IP;
 
-        if (request == null || request.getAmount() <= 0 || request.getMonths() <= 0)
-            throw new IllegalArgumentException();
-
-        if (request.getType() == LoanRequestType.PERSON && request.getAmount() < 1_000)
+        if (exceptionForRequest) throw new IllegalArgumentException();
+        if (personAmountLessOneThousand)
             return new LoanResponse(LoanResponseType.DENIED, loanCalcService.createRequest(request));
 
-        if ((request.getType() == LoanRequestType.PERSON && request.getAmount() <= 10_000 && request.getMonths() <= 12)
-                || (request.getType() == LoanRequestType.OOO && request.getAmount() > 10_000 && request.getMonths() < 12)) {
+        if (personLessTenLessTwelve || oooMoreTenLessTwelve) {
             return new LoanResponse(LoanResponseType.APPROVED, loanCalcService.createRequest(request));
-        } else if ((request.getType() == LoanRequestType.PERSON && request.getAmount() > 10_000 && request.getMonths() > 12) ||
-                (request.getType() == LoanRequestType.OOO && request.getAmount() <= 10_000) ||
-                (request.getType() == LoanRequestType.OOO && request.getAmount() > 10_000 && request.getMonths() >= 12) ||
-                (request.getType() == LoanRequestType.IP)
+        } else if (personMoreTenMoreTwelve || oooLessTen || oooMoreTenMoreTwelve || ipType
         ) {
             return new LoanResponse(LoanResponseType.DENIED, loanCalcService.createRequest(request));
         }
