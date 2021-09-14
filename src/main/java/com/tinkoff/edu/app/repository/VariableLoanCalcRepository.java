@@ -4,7 +4,7 @@ import com.tinkoff.edu.app.model.LoanResponse;
 
 public class VariableLoanCalcRepository implements LoanCalcRepository {
 
-  private LoanResponse[] arrayRepository = new LoanResponse[1];
+  private LoanResponse[] arrayRepository = new LoanResponse[15];
   private static int position = 0;
 
   @Override
@@ -12,6 +12,14 @@ public class VariableLoanCalcRepository implements LoanCalcRepository {
     arrayRepository [position] = response;
     position++;
     return arrayRepository;
-
   }
+
+  public LoanResponse[] getArrayRepository() {
+    return arrayRepository;
+  }
+
+  public int getPosition() {
+    return position;
+  }
+
 }
