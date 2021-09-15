@@ -1,231 +1,191 @@
 package com.tinkoff.edu;
 
-import com.tinkoff.edu.app.*;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import com.tinkoff.edu.app.controller.LoanCalcController;
+import com.tinkoff.edu.app.enums.LoanRequestType;
+import com.tinkoff.edu.app.enums.LoanResponseType;
+import com.tinkoff.edu.app.model.LoanRequest;
+import com.tinkoff.edu.app.model.LoanResponse;
+import com.tinkoff.edu.app.repository.VariableLoanCalcRepository;
+import com.tinkoff.edu.service.LoanCalcServiceImp;
+import org.junit.jupiter.api.*;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-public class AppTest {
-    int tenAmount = 10_000;
-    int oneThousendAmount = 1_000;
-    int zero = 0;
-    int one = 1;
-    int nineMonths = 9;
-    int twelveMonths = 12;
-    int thirteenMonths = 13;
-    int nineThousendAmount = 9_000;
-    int elevenThousendAmount = 11_000;
+@TestMethodOrder(MethodOrderer.MethodName.class)
+class AppTest {
+
+    VariableLoanCalcRepository repository = new VariableLoanCalcRepository();
+
+    private final String fio = "Иванов Иван Иванович";
     private LoanCalcController sut;
-
-    public LoanRequest loanRequestTest(LoanRequestType type, int months, int amount) {
-        return new LoanRequest(type, months, amount);
-    }
-
-    public LoanCalcController loanCalcControllerTest(int requestId) {
-        LoanCalcController loanCalcController = new LoanCalcController(new OriginalLoanCalcService(new VariableLoanCalcRepository(requestId)));
-        return loanCalcController;
-    }
+    private LoanRequest request;
 
     @BeforeEach
     public void init() {
+        sut = new LoanCalcController(new LoanCalcServiceImp(new VariableLoanCalcRepository()));
     }
 
     @Test
-    @DisplayName("Case_#000001")
+    @DisplayName("Проверка, что requestId не пустой")
     void shouldGet1WhenFirstRequest() {
-        VariableLoanCalcRepository repo = new VariableLoanCalcRepository();
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.OOO, nineMonths, tenAmount);
-        sut = new LoanCalcController(new OriginalLoanCalcService(repo));
-        assumeTrue(repo.getRequestId() == zero);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.OOO, 9, 10_000, fio);
         LoanResponse response = sut.createRequest(loanRequest);
-        assertEquals(one, response.getRequestId(), "error: requestId != 1");
+        assertNotEquals(null, response.getRequest().getRequestId(), "Request пустой");
     }
 
     @Test
-    @DisplayName("Case_#000002")
-    void shouldGetIncrementedIdWhenAnyCall() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(2);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.IP, nineMonths, oneThousendAmount);
-        assertEquals(3, loanCalcController.createRequest(loanRequest).getRequestId(), "error: requestId != 3");
+    @DisplayName("Проверка, что при добавлении нового request значение массива заполняется")
+    void MassiveSize() {
+        int positionExpected = new VariableLoanCalcRepository().getPosition();
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.OOO, 9, 10_000, fio);
+        sut.createRequest(loanRequest);
+        int positionActual = new VariableLoanCalcRepository().getPosition();
+        assertEquals(++positionExpected, positionActual, "Массив не заполняется");
     }
 
     @Test
-    @DisplayName("Case_#000003")
-    public void shouldGetDeniedWhenValidRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.OOO, twelveMonths, oneThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.DENIED, one), loanResponse, "error: not DENIED");
+    @DisplayName("Проверка на ошибку выхода за длину массива")
+    void xMassiveSizeError() {
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.OOO, 9, 10_000, fio);
+        assertThrows(IllegalArgumentException.class, () -> sut.createRequest(loanRequest));
     }
 
     @Test
-    @DisplayName("Case_#000004")
-    public void shouldGetErrorWhenApplyNullRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(null, zero, zero);
-        assertThrows(IllegalArgumentException.class, () -> {
-            loanCalcController.createRequest(loanRequest);
-        });
+    @DisplayName("При создании request co значением null получаем ошибку")
+    void shouldGetErrorWhenApplyNullRequest() {
+        LoanRequest loanRequest = new LoanRequest(null, 0, 0, null);
+        assertThrows(IllegalArgumentException.class, () -> sut.createRequest(loanRequest));
     }
 
     @Test
-    @DisplayName("Case_#000005")
+    @DisplayName("Если в request отрицательная сумма")
     public void shouldGetErrorWhenApplyNegativeAmountRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.IP, nineMonths, -2_000);
-        assertThrows(IllegalArgumentException.class, () -> {
-            loanCalcController.createRequest(loanRequest);
-        });
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.IP, 10, -2_000, fio);
+        assertThrows(IllegalArgumentException.class, () -> sut.createRequest(loanRequest));
     }
 
     @Test
-    @DisplayName("Case_#000006")
+    @DisplayName("Если в request сумма равна нулю")
     public void shouldGetErrorWhenApplyZeroAmountRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.IP, nineMonths, zero);
-        assertThrows(IllegalArgumentException.class, () -> {
-            loanCalcController.createRequest(loanRequest);
-        });
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.IP, 10, 0, fio);
+        assertThrows(IllegalArgumentException.class, () -> sut.createRequest(loanRequest));
     }
 
     @Test
-    @DisplayName("Case_#000007")
-    public void shouldGetErrorWhenApplyNegativeMonthsRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.IP, -3, tenAmount);
-        assertThrows(IllegalArgumentException.class, () -> {
-            loanCalcController.createRequest(loanRequest);
-        });
+    @DisplayName("Если в request отрицательное число месяцев")
+    void shouldGetErrorWhenApplyNegativeMonthsRequest() {
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.IP, -3, 10_000, fio);
+        assertThrows(IllegalArgumentException.class, () -> sut.createRequest(loanRequest));
     }
 
     @Test
-    @DisplayName("Case_#000008")
+    @DisplayName("Если в request количество месяцев равно нулю")
     public void shouldGetErrorWhenApplyZeroMonthsRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.IP, zero, oneThousendAmount);
-        assertThrows(IllegalArgumentException.class, () -> {
-            loanCalcController.createRequest(loanRequest);
-        });
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.IP, 0, 10_000, fio);
+        assertThrows(IllegalArgumentException.class, () -> sut.createRequest(loanRequest));
     }
 
     @Test
-    @DisplayName("Case_#000009")
+    @DisplayName("Одобрено, если Person берёт меньше чем на 12 месяцев на сумму меньше чем 10_000")
     public void shouldGetApproveWhenPersonLessTwelveLessTenRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.PERSON, nineMonths, nineThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.APPROVED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.PERSON, 9, 9_000, fio);
+        LoanResponse response = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.APPROVED, response.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000010")
+    @DisplayName("Одобрено, если ООО берёт меньше чем на 12 месяцев на сумму 10_000")
     public void shouldGetApproveWhenPersonLessTwelveEqualsTenRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.OOO, nineMonths, elevenThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.APPROVED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.PERSON, 9, 10_000, fio);
+        LoanResponse response = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.APPROVED, response.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000011")
+    @DisplayName("Одобрено, если Person берёт на 12 месяцев на сумму меньше чем 10_000")
     public void shouldGetApproveWhenPersonEqualsTwelveLessTenRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.PERSON, twelveMonths, nineThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.APPROVED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.PERSON, 12, 9_000, fio);
+        LoanResponse response = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.APPROVED, response.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000012")
-    public void shouldGetApproveWhenPersonEqualsTwelveEqualsTenRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.PERSON, twelveMonths, tenAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.APPROVED, one), loanResponse);
+    @DisplayName("Одобрено, если Person берёт на 12 месяцев на сумму 10_000")
+    void shouldGetApproveWhenPersonEqualsTwelveEqualsTenRequest() {
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.PERSON, 12, 10_000, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.APPROVED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000013")
-    public void shouldGetDenyWhenPersonMoreTenMoreTwelveRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.PERSON, thirteenMonths, elevenThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.DENIED, one), loanResponse);
+    @DisplayName("Отказано, если Person берёт больше чем на 12 месяцев на сумму больше чем 10_000")
+    public void shouldGetDenyWhenPersonMoreTwelveMoreTwelveRequest() {
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.PERSON, 13, 11_000, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.DENIED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000014")
+    @DisplayName("Отказано, если OOO берёт на сумму меньше чем 10_000")
     public void shouldGetDenyWhenOooForAnyLessTenRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.OOO, twelveMonths, nineThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.DENIED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.OOO, 11, 9_000, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.DENIED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000015")
+    @DisplayName("Отказано, если OOO берёт на сумму 10_000")
     public void shouldGetDenyWhenOooForAnyEqualsTenRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.OOO, twelveMonths, tenAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.DENIED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.OOO, 11, 10_000, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.DENIED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000016")
+    @DisplayName("Одобрено, если OOO берёт меньше чем на 12 месяцев на сумму больше чем 10_000")
     public void shouldGetApproveWhenOooLessTwelveMoreTenRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.OOO, nineMonths, elevenThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.APPROVED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.OOO, 11, 11_000, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.APPROVED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000017")
+    @DisplayName("Отказано, если OOO берёт на 12 месяцев на сумму больше чем 10_000")
     public void shouldGetDenyWhenOooEqualsTwelveMoreTenRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.OOO, twelveMonths, elevenThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.DENIED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.OOO, 12, 11_000, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.DENIED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000018")
+    @DisplayName("Отказано, если OOO берёт больше чем на 12 месяцев на сумму больше чем 10_000")
     public void shouldGetDenyWhenOooMoreTwelveMoreTenRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.OOO, thirteenMonths, elevenThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.DENIED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.OOO, 13, 11_000, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.DENIED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000019")
+    @DisplayName("Отказано, если IP запрашивает кредит")
     public void shouldGetDenyWhenIpRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.IP, nineMonths, nineThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.DENIED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.IP, 9, 9_000, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.DENIED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000020")
+    @DisplayName("Отказано, если Person берёт меньше чем на 1_000")
     public void shouldGetDenyWhenPersonLessOneThousandRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.PERSON, nineMonths, 999);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.DENIED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.IP, 9, 900, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.DENIED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 
     @Test
-    @DisplayName("Case_#000021")
+    @DisplayName("Отказано, если Person берёт меньше чем на 1_000")
     public void shouldGetDenyWhenPersonMoreOneThousandRequest() {
-        LoanCalcController loanCalcController = loanCalcControllerTest(zero);
-        LoanRequest loanRequest = loanRequestTest(LoanRequestType.PERSON, nineMonths, oneThousendAmount);
-        LoanResponse loanResponse = loanCalcController.createRequest(loanRequest);
-        assertEquals(new LoanResponse(LoanResponseType.APPROVED, one), loanResponse);
+        LoanRequest loanRequest = new LoanRequest(LoanRequestType.IP, 9, 900, fio);
+        LoanResponse loanResponse = sut.createRequest(loanRequest);
+        assertEquals(LoanResponseType.DENIED, loanResponse.getResponseType(), "ResponseType не соответствует ожидаемому");
     }
 }
