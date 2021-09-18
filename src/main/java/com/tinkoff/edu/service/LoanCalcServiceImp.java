@@ -25,19 +25,19 @@ public class LoanCalcServiceImp implements LoanCalcService {
 
 	@Override
 	public LoanResponse createRequest(LoanRequest request) {
-		if ((request == null) || (request.getMonths() <= 0) || (request.getAmount() <= 0))
-			try {
-				throw new IllegalArgumentException();
-			} catch (IllegalArgumentException e) {
-				System.out.println("Переданы не валидные значения для инициализации request || months || amount");
-			}
-		else if (request.getFio().length() > 100 || request.getFio().startsWith(" ") || request.getFio().endsWith(" "))
-			try {
-				throw new IllegalArgumentException();
-			} catch (IllegalArgumentException e) {
+		if ((request == null) || (request.getMonths() <= 0) || (request.getAmount() <= 0)) {
+			System.out
+					.println("Переданы не валидные значения для инициализации request || months || amount");
+			throw new IllegalArgumentException();
+		} else {
+			if (request.getFio().length() > 100 || request.getFio().startsWith(" ") || request.getFio()
+					.endsWith(" "))
+			{
 				System.out.println(
 						"ФИО не может быть длиной более 100 символов и начинаться либо заканчиваться пробелами.");
+				throw new IllegalArgumentException();
 			}
+		}
 		LoanResponseType responseType = this.countResponseType(request);
 		UUID responseId = UUID.randomUUID();
 		LoanResponse loanResponse = new LoanResponse(responseType, responseId, request);

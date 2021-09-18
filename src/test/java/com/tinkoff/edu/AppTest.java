@@ -63,6 +63,22 @@ class AppTest {
 	}
 
 	@Test
+	@DisplayName("ФИО не может начинаться на пробел")
+	void shouldGetErrorWhenFioStartingWhitespace() {
+		LoanRequest loanRequest = new LoanRequest(LoanRequestType.PERSON, 9, 9_000,
+				" Ivanov Ivan");
+		assertThrows(IllegalArgumentException.class, () -> sut.createRequest(loanRequest));
+	}
+
+	@Test
+	@DisplayName("ФИО не может начинаться на пробел")
+	void shouldGetErrorWhenFioFinishingWhitespace() {
+		LoanRequest loanRequest = new LoanRequest(LoanRequestType.PERSON, 9, 9_000,
+				"Ivanov Ivan ");
+		assertThrows(IllegalArgumentException.class, () -> sut.createRequest(loanRequest));
+	}
+
+	@Test
 	@DisplayName("Если в request отрицательная сумма")
 	public void shouldGetErrorWhenApplyNegativeAmountRequest() {
 		LoanRequest loanRequest = new LoanRequest(LoanRequestType.IP, 10, -2_000, fio);
