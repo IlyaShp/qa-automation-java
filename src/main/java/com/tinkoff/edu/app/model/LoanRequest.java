@@ -1,6 +1,7 @@
 package com.tinkoff.edu.app.model;
 
 import com.tinkoff.edu.app.enums.LoanRequestType;
+
 import java.util.UUID;
 
 /**
@@ -8,47 +9,47 @@ import java.util.UUID;
  */
 public class LoanRequest {
 
-  private final LoanRequestType type;
-  private final String fio;
-  private final int months; //stateful + immutable
-  private final int amount;
-  private final UUID requestId;
+	private final LoanRequestType type;
+	private final String fio;
+	private final int months; //stateful + immutable
+	private final int amount;
+	private final UUID requestId;
 
-  public UUID getRequestId() {
-    return requestId;
-  }
+	public LoanRequest(LoanRequestType type, int months, int amount, String fio) {
+		this.type = type;
+		this.months = months;
+		this.amount = amount;
+		this.fio = fio;
+		requestId = UUID.randomUUID();
+	}
 
-  public LoanRequest(LoanRequestType type, int months, int amount, String fio) {
-    this.type = type;
-    this.months = months;
-    this.amount = amount;
-    this.fio = fio;
-    requestId = UUID.randomUUID();
-  }
+	public UUID getRequestId() {
+		return requestId;
+	}
 
-  public LoanRequestType getType() {
-    return type;
-  }
+	public LoanRequestType getType() {
+		return type;
+	}
 
-  public int getMonths() {
-    return months;
-  }
+	public int getMonths() {
+		return months;
+	}
 
-  public int getAmount() {
-    return amount;
-  }
+	public int getAmount() {
+		return amount;
+	}
 
-  public String getFio() {
-    return fio;
-  }
+	public String getFio() {
+		return fio;
+	}
 
-  @Override
-  public String toString() {
-    return "LoanRequest{" +
-        "type=" + type +
-        ", fio='" + fio + '\'' +
-        ", months=" + months +
-        ", amount=" + amount +
-        '}';
-  }
+	@Override
+	public String toString() {
+		return "LoanRequest{" +
+				"type=" + type +
+				", fio='" + fio + '\'' +
+				", months=" + months +
+				", amount=" + amount +
+				'}';
+	}
 }
