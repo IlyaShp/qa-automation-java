@@ -3,7 +3,6 @@ package com.tinkoff.edu.service;
 import static com.tinkoff.edu.app.enums.LoanResponseType.APPROVED;
 import static com.tinkoff.edu.app.enums.LoanResponseType.DENIED;
 
-import com.sun.istack.internal.NotNull;
 import com.tinkoff.edu.app.enums.LoanResponseType;
 import com.tinkoff.edu.app.model.LoanRequest;
 import com.tinkoff.edu.app.model.LoanResponse;

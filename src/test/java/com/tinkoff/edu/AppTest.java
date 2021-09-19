@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @TestMethodOrder(MethodOrderer.MethodName.class)
 class AppTest {
 
+
 	private final String fio = "Иванов Иван Иванович";
 	private LoanCalcController sut;
 
