@@ -9,9 +9,22 @@ import java.util.UUID;
  */
 public class LoanResponse {
 
-  private final UUID responseId;
-  private final LoanResponseType responseType;
-  private final LoanRequest request;
+  private  UUID responseId;
+  private  LoanResponseType responseType;
+
+  public void setResponseId(UUID responseId) {
+    this.responseId = responseId;
+  }
+
+  public void setResponseType(LoanResponseType responseType) {
+    this.responseType = responseType;
+  }
+
+  public void setRequest(LoanRequest request) {
+    this.request = request;
+  }
+
+  private  LoanRequest request;
 
   public LoanResponse(LoanResponseType responseType, UUID requestId, LoanRequest request) {
     this.responseType = responseType;
