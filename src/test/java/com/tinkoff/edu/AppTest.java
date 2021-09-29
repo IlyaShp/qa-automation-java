@@ -1,5 +1,6 @@
 package com.tinkoff.edu;
 
+import static org.junit.Assert.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -9,6 +10,7 @@ import com.tinkoff.edu.app.enums.LoanRequestType;
 import com.tinkoff.edu.app.enums.LoanResponseType;
 import com.tinkoff.edu.app.model.LoanRequest;
 import com.tinkoff.edu.app.model.LoanResponse;
+import com.tinkoff.edu.app.repository.FileRepo;
 import com.tinkoff.edu.app.repository.LoanCalcRepository;
 import com.tinkoff.edu.app.repository.VariableLoanCalcRepository;
 import com.tinkoff.edu.service.LoanCalcServiceImp;
@@ -17,6 +19,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
+
+import java.util.UUID;
+
 import static org.hamcrest.MatcherAssert.assertThat;
 
 import static org.hamcrest.Matchers.*;
@@ -276,5 +281,46 @@ class AppTest {
     VariableLoanCalcRepository repo = new VariableLoanCalcRepository();
     assertThrows(IllegalArgumentException.class,
         () -> repo.setStatusByUUID(null, LoanResponseType.APPROVED));
+  }
+
+  @Test
+  @DisplayName("Проверили, что работает функционал получения из файла статуса заявки по UUID")
+  public void shouldGetStatusByUUIDFromFile() {
+    LoanRequest request = new LoanRequest(LoanRequestType.OOO, 4, 2000, "IP");
+    FileRepo repo = new FileRepo();
+    sut = new LoanCalcController(new LoanCalcServiceImp(repo));
+    LoanResponse loanResponse = sut.createRequest(request);
+    UUID responseId = loanResponse.getResponseId();
+    assertEquals(loanResponse.getResponseType(), repo.getStatusByUUID(responseId),
+            "Не работает функционал получения статуса заявки из файла");
+  }
+
+  @Test
+  @DisplayName("Проверили, что работает функционал изменения заявки в файле")
+  public void shouldChangeStatusFromFile() {
+    LoanRequest request = new LoanRequest(LoanRequestType.PERSON, 3, 2000, "YT");
+    FileRepo repo = new FileRepo();
+    sut = new LoanCalcController(new LoanCalcServiceImp(repo));
+    LoanResponse loanResponse = sut.createRequest(request);
+    UUID responseId = loanResponse.getResponseId();
+    assertTrue(repo.setStatusByUUID(responseId, LoanResponseType.DENIED));
+    assertEquals(LoanResponseType.DENIED, repo.getStatusByUUID(responseId),
+            "Не работает функционал изменения заявки в файле");
+  }
+
+  @Test
+  @DisplayName("Проверили, что работает функционал получения суммы amount по LoanRequestType")
+  public void shouldGetSumAmountByLoanType() {
+    LoanRequest request = new LoanRequest(LoanRequestType.IP, 4, 2000, "");
+    VariableLoanCalcRepository repo = new VariableLoanCalcRepository();
+    sut = new LoanCalcController(new LoanCalcServiceImp(repo));
+    sut.createRequest(request);
+    sut.createRequest(request);
+    LoanResponse[] requestByLoanType = repo.getRequestByLoanType(LoanRequestType.IP);
+    int actAmount = 0;
+    for (LoanResponse response : requestByLoanType) {
+      actAmount = actAmount + response.getRequest().getAmount();
+    }
+    assertEquals(4000, actAmount, "Значение поля amout не соответствует");
   }
 }
